@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <title>颜色选取器</title>
+  <style>
+    body {
+      font-family: "Segoe UI", "Arial", sans-serif;
+      background: #f3f4f6;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      min-height: 100vh;
+      margin: 0;
+    }
+    .container {
+      margin-top: 60px;
+      background: #fff;
+      padding: 32px 36px 24px 36px;
+      border-radius: 14px;
+      box-shadow: 0 6px 32px rgba(0,0,0,0.08);
+      min-width: 330px;
+    }
+    .input-group {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 20px;
+    }
+    input[type="text"] {
+      font-size: 18px;
+      padding: 10px 12px;
+      border-radius: 7px;
+      border: 1px solid #dcdcdc;
+      flex: 1;
+      outline: none;
+      transition: border 0.2s;
+    }
+    input[type="text"]:focus {
+      border: 1.5px solid #409eff;
+    }
+    .color-card {
+      margin-top: 16px;
+      padding: 20px 22px;
+      border-radius: 10px;
+      box-shadow: 0 2px 16px rgba(0,0,0,0.06);
+      background: #f9fafb;
+      display: flex;
+      align-items: center;
+      gap: 18px;
+      min-width: 200px;
+      max-width: 430px;
+      flex-wrap: wrap;
+    }
+    .swatch {
+      width: 60px;
+      height: 60px;
+      border-radius: 8px;
+      border: 2px solid #e1e1e1;
+      background: #eee;
+      flex-shrink: 0;
+    }
+    .info {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      font-size: 16px;
+      overflow-x: auto;
+    }
+    .error {
+      color: #d00;
+      margin-top: 10px;
+      font-size: 15px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="input-group">
+      <input type="text" id="colorInput" placeholder="输入颜色名称，如 red、海盐蓝、草绿...">
+    </div>
+    <div id="result"></div>
+  </div>
+  <script>
+    // 支持的中文颜色映射，可自行添加更多
+    const colorsMap = {
+      "海盐蓝": "#7eccea",         // Sea Salt Blue
+      "草绿": "#60b643",           // Grass Green
+      "樱花粉": "#ffb7c5",         // Cherry Blossom Pink
+      "琥珀黄": "#ffc200",         // Amber Yellow
+      "深空蓝": "#1761a0",         // Deep Sky Blue
+      "墨黑": "#222222",           // Ink Black
+      "象牙白": "#fffff0",         // Ivory White
+      "橙红": "#ff4d2d",           // Orange Red
+      "天青": "#7ec7ff",           // Sky Cyan
+      "浅灰": "#e0e0e0",           // Light Gray
+      "翠绿": "#00c957",           // Emerald Green
+      "湖蓝": "#30a9de",           // Lake Blue
+      "米色": "#f5f5dc",           // Beige
+      "银灰": "#c0c0c0"            // Silver Gray
+      // 你可以继续添加更多中文颜色
+    };
+
+    function colorToHex(color) {
+      // 先尝试直接解析
+      const div = document.createElement("div");
+      div.style.color = color;
+      document.body.appendChild(div);
+      let computed = getComputedStyle(div).color;
+      document.body.removeChild(div);
+
+      const rgb = computed.match(/^rgb\((\d+),\s*(\d+),\s*(\d+)\)$/);
+      if (!rgb) return null;
+      let r = parseInt(rgb[1]);
+      let g = parseInt(rgb[2]);
+      let b = parseInt(rgb[3]);
+      let hex = "#" + ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1).toUpperCase();
+      return {
+        rgb: `rgb(${r}, ${g}, ${b})`,
+        hex,
+      };
+    }
+
+    const input = document.getElementById("colorInput");
+    const result = document.getElementById("result");
+
+    input.addEventListener("keydown", function (e) {
+      if (e.key === "Enter") {
+        showColorCard(input.value.trim());
+      }
+    });
+
+    function showColorCard(colorName) {
+      result.innerHTML = "";
+      if (!colorName) return;
+
+      let finalColor = colorName;
+      // 先查中文颜色映射
+      if (colorsMap[colorName]) {
+        finalColor = colorsMap[colorName];
+      }
+
+      // 再查英文标准色或16进制
+      const data = colorToHex(finalColor);
+      if (!data) {
+        result.innerHTML = `<div class="error">无法识别的颜色：${colorName}</div>`;
+        return;
+      }
+      // 若输入中文，显示映射的hex或英文
+      let showOrigin = colorName;
+      if (colorsMap[colorName]) {
+        showOrigin += `（${colorsMap[colorName]}）`;
+      }
+
+      result.innerHTML = `
+        <div class="color-card">
+          <div class="swatch" style="background:${data.hex};"></div>
+          <div class="info">
+            <div><b>名称</b>：${showOrigin}</div>
+            <div><b>RGB</b>：${data.rgb}</div>
+            <div><b>16进制</b>：${data.hex}</div>
+          </div>
+        </div>
+      `;
+    }
+  </script>
+</body>
+</html>
